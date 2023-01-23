@@ -19,18 +19,21 @@ class Game
     'wrong'.bold} guess, you #{'lose a life'.colorize(:red)}.\n\n"
   end
 
+  # Returns whether guess is correct or not.
   def guess_match?(guess)
     match = false
     @word.each_char { |char| match = true if char == guess }
     match
   end
 
+  # Returns the indexes of the match (e.g. Guess: A | Word: Potato | Index: [3]).
   def guess_index(guess)
     index = []
     @word.each_char.with_index { |char, i| index << i if char == guess }
     index
   end
 
+  # Calls all methods needed for game execution.
   def play
     greet
     select_word
@@ -52,6 +55,7 @@ class Game
     prompt
   end
 
+  # Picks a random word from the list.
   def select_word
     @word = WORD_LIST[rand(WORD_LIST.size)]
   end
@@ -75,6 +79,7 @@ class Game
 
   # end
 
+  # Verifies if the prompt is alphabetical and only 1 character long
   def valid_prompt?(prompt)
     valid = nil
     valid = true if prompt.match(/[a-zA-Z]/) && prompt.size == 1
