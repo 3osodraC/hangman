@@ -15,7 +15,20 @@ class Game
 
   def greet
     puts "#{'Welcome to Hangman!'.colorize(:light_blue)}\n\nA #{'random word'.bold} has been selected. You start with #{
-    @lives} lives, \nevery time you make a #{'wrong'.bold} guess, you #{'lose a life'.colorize(:red)}.\n\n"
+    @lives} lives, \nyou will have to guess each letter in the word every \ntime you make a #{
+    'wrong'.bold} guess, you #{'lose a life'.colorize(:red)}.\n\n"
+  end
+
+  def guess_match?(guess)
+    match = false
+    @word.each_char { |char| match = true if char == guess }
+    match
+  end
+
+  def guess_index(guess)
+    index = []
+    @word.each_char.with_index { |char, i| index << i if char == guess }
+    index
   end
 
   def play
@@ -25,7 +38,7 @@ class Game
 
     while @lives.positive?
       guess = prompt_guess
-      # right_guess?(guess)
+      # update_data
     end
   end
 
@@ -39,15 +52,11 @@ class Game
     prompt
   end
 
-  # def right_guess?(guess)
-
-  # end
-
   def select_word
     @word = WORD_LIST[rand(WORD_LIST.size)]
   end
 
-  def display
+  def update_display
     @word.size.times { @right_guesses[:display] << '_ ' } if @right_guesses[:display].empty?
 
     case @lives
@@ -62,9 +71,13 @@ class Game
     puts @right_guesses[:display]
   end
 
+  # def update_data
+
+  # end
+
   def valid_prompt?(prompt)
     valid = nil
-    valid = true if prompt.match(/[a-zA-Z]/)
+    valid = true if prompt.match(/[a-zA-Z]/) && prompt.size == 1
     valid
   end
 end
