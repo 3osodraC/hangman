@@ -9,8 +9,9 @@ class Game
   def initialize
     @word = ''
     @lives = 6
-    @wrong_guesses = { list: [], display: '' }
-    @right_guesses = { list: [], display: '' }
+    @guess = ''
+    @wrong_guesses = []
+    @correct_guesses = { list: [], display: [] }
   end
 
   def greet
@@ -37,14 +38,24 @@ class Game
   def play
     greet
     select_word
-    display
 
     while @lives.positive?
-      guess = prompt_guess
-      # update_data
+      display
+      @guess = prompt_guess
+      update_data
+
+      if win?
+        puts "#{@correct_guesses[:display].join}\n\n"
+        puts "CONGRATULATIONS! #{'YOU WON! :D'.colorize(:green)}"
+        return
+      end
     end
+
+    puts "#{'You lost :('.colorize(:red)} You'll get 'em next time."
+    puts "The secret word was #{@word.colorize(:light_blue)}."
   end
 
+  # Verifies prompt using #valid_prompt? then returns the user input.
   def prompt_guess
     prompt = ''
     until valid_prompt?(prompt)
@@ -60,8 +71,10 @@ class Game
     @word = WORD_LIST[rand(WORD_LIST.size)]
   end
 
-  def update_display
-    @word.size.times { @right_guesses[:display] << '_ ' } if @right_guesses[:display].empty?
+  # Displays all data
+  def display
+    # p @word
+    @word.size.times { @correct_guesses[:display] << '_ ' } if @correct_guesses[:display].empty?
 
     case @lives
     when 5..6
@@ -72,18 +85,34 @@ class Game
       puts "Lives: #{@lives}".colorize(:red)
     end
 
-    puts @right_guesses[:display]
+    puts "Wrong Guesses: #{@wrong_guesses.join}" unless @wrong_guesses.empty?
+    puts @correct_guesses[:display].join.colorize(:light_blue)
   end
 
-  # def update_data
+  # Updates @lives, @correct_guesses & @wrong_guesses.
+  # Using #guess_index.each, it pushes the guess to its correct
+  # location in the @correct_guesses hash.
+  def update_data
+    if guess_match?(@guess)
+      guess_index(@guess).each do |item|
+        @correct_guesses[:display][item] = "#{@guess} "
+        @correct_guesses[:list][item] = @guess
+      end
+    else
+      @lives -= 1
+      @wrong_guesses << "#{@guess} "
+    end
+  end
 
-  # end
-
-  # Verifies if the prompt is alphabetical and only 1 character long
+  # Verifies if the prompt is alphabetical and only 1 character long.
   def valid_prompt?(prompt)
     valid = nil
     valid = true if prompt.match(/[a-zA-Z]/) && prompt.size == 1
     valid
+  end
+
+  def win?
+    return true if @correct_guesses[:list].join == @word
   end
 end
 
