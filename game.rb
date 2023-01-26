@@ -63,7 +63,7 @@ class Game
       prompt = gets.chomp
     end
     puts "\n"
-    prompt
+    prompt.downcase!
   end
 
   # Picks a random word from the list.
