@@ -3,7 +3,7 @@ require 'colorize'
 # Hangman game class
 class Game
   # Filters the dictionary, keeps words with 5-12 characters.
-  dictionary = File.foreach('google-10000-english-no-swears.txt').map(&:split)
+  dictionary = File.foreach('dictionary.txt').map(&:split)
   WORD_LIST = dictionary.flatten.select { |word| word.size >= 5 && word.size <= 12 }.freeze
 
   def initialize
