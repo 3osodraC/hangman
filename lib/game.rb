@@ -14,6 +14,24 @@ class Game
     @correct_guesses = { list: [], display: [] }
   end
 
+  # Displays all data
+  def display
+    # p @word
+    @word.size.times { @correct_guesses[:display] << '_ ' } if @correct_guesses[:display].empty?
+
+    case @lives
+    when 5..6
+      puts "Lives: #{@lives}".colorize(:green)
+    when 3..4
+      puts "Lives: #{@lives}".colorize(:yellow)
+    when 0..2
+      puts "Lives: #{@lives}".colorize(:red)
+    end
+
+    puts "Wrong Guesses: #{@wrong_guesses.join}" unless @wrong_guesses.empty?
+    puts @correct_guesses[:display].join.colorize(:light_blue)
+  end
+
   def greet
     puts "#{'Welcome to Hangman!'.colorize(:light_blue)}\n\nA #{'random word'.bold} has been selected. You start with #{
     @lives} lives, \nyou will have to guess each letter in the word every \ntime you make a #{
@@ -69,24 +87,6 @@ class Game
   # Picks a random word from the list.
   def select_word
     @word = WORD_LIST[rand(WORD_LIST.size)]
-  end
-
-  # Displays all data
-  def display
-    # p @word
-    @word.size.times { @correct_guesses[:display] << '_ ' } if @correct_guesses[:display].empty?
-
-    case @lives
-    when 5..6
-      puts "Lives: #{@lives}".colorize(:green)
-    when 3..4
-      puts "Lives: #{@lives}".colorize(:yellow)
-    when 0..2
-      puts "Lives: #{@lives}".colorize(:red)
-    end
-
-    puts "Wrong Guesses: #{@wrong_guesses.join}" unless @wrong_guesses.empty?
-    puts @correct_guesses[:display].join.colorize(:light_blue)
   end
 
   # Updates @lives, @correct_guesses & @wrong_guesses.
