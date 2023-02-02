@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require 'colorize'
+require 'yaml'
 
 # Hangman game class
 class Game
@@ -12,6 +15,35 @@ class Game
     @guess = ''
     @wrong_guesses = []
     @correct_guesses = { list: [], display: [] }
+  end
+
+  # Selects a saved game.
+  def choose_save(saved_games)
+    valid_save = false
+    save = ''
+
+    until valid_save
+      puts 'Select your saved game: '
+      save = gets.chomp
+
+      if saved_games.include?(save)
+        valid_save = true
+      else
+        puts 'Invalid save.'.colorize(:light_red)
+      end
+    end
+
+    save
+  end
+
+  # Assigns all instance variables of the saved game to the current game.
+  def deserialize(choose_save)
+    yaml = YAML.load_file("saves/#{choose_save}.yml")
+    self.word = yaml[0].word
+    self.lives = yaml[0].lives
+    self.guess = yaml[0].guess
+    self.wrong_guesses = yaml[0].wrong_guesses
+    self.correct_guesses = yaml[0].correct_guesses
   end
 
   # Displays all data
@@ -33,9 +65,9 @@ class Game
   end
 
   def greet
-    puts "#{'Welcome to Hangman!'.colorize(:light_blue)}\n\nA #{'random word'.bold} has been selected. You start with #{
+    puts "\n#{'Welcome to Hangman!'.colorize(:light_blue)}\n\nA #{'random word'.bold} has been selected. You start with #{
     @lives} lives, \nyou will have to guess each letter in the word every \ntime you make a #{
-    'wrong'.bold} guess, you #{'lose a life'.colorize(:red)}.\n\n"
+    'wrong'.bold} guess, you #{'lose a life'.colorize(:red)}.\nType 'save' at any time to #{'save your game'.bold}."
   end
 
   # Returns whether guess is correct or not.
@@ -50,6 +82,18 @@ class Game
     index = []
     @word.each_char.with_index { |char, i| index << i if char == guess }
     index
+  end
+
+  # Loads the selected saved game by #deserialize -ing the object selected by #choose_game
+  def load_game
+    unless Dir.exist?('saves')
+      puts "\nNo available save files.".colorize(:light_red)
+      return
+    end
+
+    saved_games = saved_files
+    puts saved_games
+    deserialize(choose_save(saved_games))
   end
 
   # Calls all methods needed for game execution.
@@ -76,17 +120,52 @@ class Game
   # Verifies prompt using #valid_prompt? then returns the user input.
   def prompt_guess
     prompt = ''
-    until valid_prompt?(prompt)
+
+    until valid_prompt?(prompt) || prompt.downcase == 'save'
       print "\nGuess: "
       prompt = gets.chomp
     end
+
+    save_game if prompt.downcase == 'save'
+
     puts "\n"
     prompt.downcase
+  end
+
+  # Saves current game.
+  def save_game
+    print 'Enter save file name: '
+    save = gets.chomp
+    puts "\n"
+
+    Dir.mkdir('saves') unless Dir.exist?('saves')
+    File.open("saves/#{save}.yml", 'w') { |file| YAML.dump([] << self, file) }
+    exit
+  end
+
+  # Shows all saved game files.
+  def saved_files
+    puts 'Saves: '
+    Dir['saves/*'].map { |file| file.split('/')[-1].split('.')[0] }
   end
 
   # Picks a random word from the list.
   def select_word
     @word = WORD_LIST[rand(WORD_LIST.size)]
+  end
+
+  def title_screen
+    puts '-=-=-=-=-Hangman-=-=-=-=-'.bold
+    puts "\n#{'New Game'.colorize(:light_cyan)} -> 1\n#{'Load Game'.colorize(:cyan)} -> 2\n\n"
+
+    mode = ''
+    until mode.match(/[1-2]/)
+      print 'Select Mode: '
+      mode = gets.chomp
+    end
+
+    load_game if mode == '2'
+    play
   end
 
   # Updates @lives, @correct_guesses & @wrong_guesses.
@@ -117,4 +196,4 @@ class Game
 end
 
 hangman = Game.new
-hangman.play
+hangman.title_screen
