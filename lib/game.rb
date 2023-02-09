@@ -5,6 +5,8 @@ require 'yaml'
 
 # Hangman game class
 class Game
+  attr_accessor :word, :lives, :guess, :wrong_guesses, :correct_guesses
+
   # Filters the dictionary, keeps words with 5-12 characters.
   dictionary = File.foreach('dictionary.txt').map(&:split)
   WORD_LIST = dictionary.flatten.select { |word| word.size >= 5 && word.size <= 12 }.freeze
@@ -36,14 +38,13 @@ class Game
     save
   end
 
-  # Assigns all instance variables of the saved game to the current game.
+  # (BROKEN) Assigns all instance variables of the saved game to the current game.
   def deserialize(choose_save)
-    yaml = YAML.load_file("saves/#{choose_save}.yml")
-    self.word = yaml[0].word
-    self.lives = yaml[0].lives
-    self.guess = yaml[0].guess
-    self.wrong_guesses = yaml[0].wrong_guesses
-    self.correct_guesses = yaml[0].correct_guesses
+    saved = File.open(File.join(Dir.pwd, "saves/#{choose_save}.yml"), 'r')
+    data = YAML.load(saved)
+    data.each do |key, value|
+      instance_variable_set("@#{key}", value)
+    end
   end
 
   # Displays all data
@@ -154,6 +155,7 @@ class Game
     @word = WORD_LIST[rand(WORD_LIST.size)]
   end
 
+  # Title screen for mode selection before the game starts
   def title_screen
     puts '-=-=-=-=-Hangman-=-=-=-=-'.bold
     puts "\n#{'New Game'.colorize(:light_cyan)} -> 1\n#{'Load Game'.colorize(:cyan)} -> 2\n\n"
