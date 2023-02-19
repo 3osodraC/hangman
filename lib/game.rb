@@ -16,7 +16,8 @@ class Game
     @lives = 6
     @guess = ''
     @wrong_guesses = []
-    @correct_guesses = { list: [], display: [] }
+    @correct_guesses = []
+    @display = []
   end
 
   # Selects a saved game.
@@ -40,17 +41,20 @@ class Game
 
   # (BROKEN) Assigns all instance variables of the saved game to the current game.
   def deserialize(choose_save)
-    saved = File.open(File.join(Dir.pwd, "saves/#{choose_save}.yml"), 'r')
-    data = YAML.load(saved)
-    data.each do |key, value|
-      instance_variable_set("@#{key}", value)
-    end
+    yaml = File.open(File.join(Dir.pwd, "saves/#{choose_save}.yml"), 'r')
+    data = Psych.safe_load(yaml, permitted_classes: [Game])
+    self.word = yaml.word
+    self.lives = yaml.lives
+    self.guess = yaml.guess
+    self.wrong_guesses = yaml.wrong_guesses
+    self.correct_guesses = yaml.correct_guesses
+    self.display = yaml.display
   end
 
   # Displays all data
   def display
     # p @word
-    @word.size.times { @correct_guesses[:display] << '_ ' } if @correct_guesses[:display].empty?
+    @word.size.times { @display << '_ ' } if @display.empty?
 
     case @lives
     when 5..6
@@ -62,7 +66,7 @@ class Game
     end
 
     puts "Wrong Guesses: #{@wrong_guesses.join}" unless @wrong_guesses.empty?
-    puts @correct_guesses[:display].join.colorize(:light_blue)
+    puts @display.join.colorize(:light_blue)
   end
 
   def greet
@@ -85,7 +89,7 @@ class Game
     index
   end
 
-  # Loads the selected saved game by #deserialize -ing the object selected by #choose_game
+  # Loads the selected saved game by #deserialize -ing the object selected by #choose_game.
   def load_game
     unless Dir.exist?('saves')
       puts "\nNo available save files.".colorize(:light_red)
@@ -108,7 +112,7 @@ class Game
       update_data
 
       if win?
-        puts "#{@correct_guesses[:display].join}\n\n"
+        puts "#{@display.join}\n\n"
         puts "CONGRATULATIONS! #{'YOU WON! :D'.colorize(:green)}"
         return
       end
@@ -155,7 +159,7 @@ class Game
     @word = WORD_LIST[rand(WORD_LIST.size)]
   end
 
-  # Title screen for mode selection before the game starts
+  # Title screen for mode selection before the game starts.
   def title_screen
     puts '-=-=-=-=-Hangman-=-=-=-=-'.bold
     puts "\n#{'New Game'.colorize(:light_cyan)} -> 1\n#{'Load Game'.colorize(:cyan)} -> 2\n\n"
@@ -176,8 +180,8 @@ class Game
   def update_data
     if guess_match?(@guess)
       guess_index(@guess).each do |item|
-        @correct_guesses[:display][item] = "#{@guess} "
-        @correct_guesses[:list][item] = @guess
+        @display[item] = "#{@guess} "
+        @correct_guesses[item] = @guess
       end
     else
       @lives -= 1
@@ -193,7 +197,7 @@ class Game
   end
 
   def win?
-    return true if @correct_guesses[:list].join == @word
+    return true if @correct_guesses.join == @word
   end
 end
 
