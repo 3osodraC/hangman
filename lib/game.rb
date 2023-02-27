@@ -40,15 +40,14 @@ class Game
   end
 
   # (BROKEN) Assigns all instance variables of the saved game to the current game.
-  def deserialize(choose_save)
-    yaml = File.open(File.join(Dir.pwd, "saves/#{choose_save}.yml"), 'r')
-    data = Psych.safe_load(yaml, permitted_classes: [Game])
-    self.word = yaml.word
-    self.lives = yaml.lives
-    self.guess = yaml.guess
-    self.wrong_guesses = yaml.wrong_guesses
-    self.correct_guesses = yaml.correct_guesses
-    self.display = yaml.display
+  def deserialize(save_name)
+    data = YAML.safe_load(File.read("saves/#{save_name}.yml"), permitted_classes: [Game, Symbol])
+    @word = data[:word]
+    @lives = data[:lives]
+    @guess = data[:guess]
+    @wrong_guesses = data[:wrong_guesses]
+    @correct_guesses = data[:correct_guesses]
+    @display = data[:display]
   end
 
   # Displays all data
