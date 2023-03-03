@@ -5,8 +5,6 @@ require 'yaml'
 
 # Hangman game class
 class Game
-  attr_accessor :word, :lives, :guess, :wrong_guesses, :correct_guesses
-
   # Filters the dictionary, keeps words with 5-12 characters.
   dictionary = File.foreach('dictionary.txt').map(&:split)
   WORD_LIST = dictionary.flatten.select { |word| word.size >= 5 && word.size <= 12 }.freeze
@@ -39,15 +37,16 @@ class Game
     save
   end
 
-  # (BROKEN) Assigns all instance variables of the saved game to the current game.
+  # Assigns all instance variables of the saved game to the current game.
   def deserialize(save_name)
     data = YAML.safe_load(File.read("saves/#{save_name}.yml"), permitted_classes: [Game, Symbol])
-    @word = data[:word]
-    @lives = data[:lives]
-    @guess = data[:guess]
-    @wrong_guesses = data[:wrong_guesses]
-    @correct_guesses = data[:correct_guesses]
-    @display = data[:display]
+    game = data[0]
+    @word = game.instance_variable_get(:@word)
+    @lives = game.instance_variable_get(:@lives)
+    @guess = game.instance_variable_get(:@guess)
+    @wrong_guesses = game.instance_variable_get(:@wrong_guesses)
+    @correct_guesses = game.instance_variable_get(:@correct_guesses)
+    @display = game.instance_variable_get(:@display)
   end
 
   # Displays all data
@@ -101,9 +100,9 @@ class Game
   end
 
   # Calls all methods needed for game execution.
-  def play
+  def play(loaded)
     greet
-    select_word
+    select_word unless loaded
 
     while @lives.positive?
       display
@@ -169,8 +168,13 @@ class Game
       mode = gets.chomp
     end
 
-    load_game if mode == '2'
-    play
+    if mode == '2'
+      load_game
+      loaded = true
+    else
+      loaded = false
+    end
+    play(loaded)
   end
 
   # Updates @lives, @correct_guesses & @wrong_guesses.
